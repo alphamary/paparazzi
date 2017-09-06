@@ -33,16 +33,18 @@ extern void logger_uart_periodic(void);
 //union {
   struct PACKED logger_uart_data_struct {
     uint16_t start;
-    int16_t id;         // 1
-    int16_t gyro_p;     // 2
-    int16_t gyro_q;
-    int16_t gyro_r;
-    int16_t acc_x;      // 5
-    int16_t acc_y;
-    int16_t acc_z;
-    int16_t phi;        // 11
-    int16_t theta;
-    int16_t psi;
+    uint16_t id;         // 1
+    float timeStamp;
+    unsigned char deviceID;
+    int32_t acc_x;      // 5
+    int32_t acc_y;
+    int32_t acc_z;
+    float vel_x;      // 5
+    float vel_y;
+    float vel_z;
+    float pos_x;      // 5
+    float pos_y;
+    float pos_z;
     uint8_t crc;
   };
 //  uint8_t bytes[23];
