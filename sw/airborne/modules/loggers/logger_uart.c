@@ -20,7 +20,6 @@
  *
  */
 
-
 #include "logger_uart.h"
 
 #include "state.h"
@@ -29,21 +28,26 @@
 #include "mcu_periph/uart.h"
 #include "mcu_periph/sys_time.h"
 #include "modules/ins/imu_chimu.h"
+#include "byte_framing.h"
 
 
 struct logger_uart_data_struct logger_uart_data;
+byteFrameData retVar;
 CHIMU_PARSER_DATA CHIMU_DATA;
-sys_time time;
+
 void logger_uart_init(void)
 {
   logger_uart_data.id = 0;
 }
 void logger_uart_periodic(void)
 {
-  logger_uart_data.start = 0x55CC;
+  logger_uart_data.start = 0x99;
+  logger_uart_data.end = 0x55;
+  uint8_t esc = 0xD3;
   logger_uart_data.id++;
-  struct EnuCoor_f vel = *stateGetSpeedEnu_f();
-  struct EnuCoor_f pos = *stateGetPositionEnu_f();
+  struct NedCoor_f accel = *stateGetAccelNed_f();
+  struct NedCoor_f vel = *stateGetSpeedNed_f();
+  struct NedCoor_f pos = *stateGetPositionNed_f();
   if (logger_uart_data.id & 0x0080) 
   {
     LED_ON(1);
@@ -53,26 +57,34 @@ void logger_uart_periodic(void)
     LED_OFF(1);
   }
   
-  logger_uart_data.timeStamp = (float)(time.nb_sec + (float)((time.nb_sec_rem) *1000) / time.cpu_ticks_per_sec);
+  logger_uart_data.timeStamp = (float)(sys_time.nb_sec + (float)((sys_time.nb_sec_rem) *1000) / sys_time.cpu_ticks_per_sec);
   //logger_uart_data.timeStamp = (int)(get_sys_time_float() * 1000);
   logger_uart_data.deviceID = CHIMU_DATA.m_DeviceID;
-  logger_uart_data.acc_x = imu.accel_unscaled.x;
-  logger_uart_data.acc_y = imu.accel_unscaled.y;
-  logger_uart_data.acc_z = imu.accel_unscaled.z;
+  logger_uart_data.acc_x = accel.x;
+  logger_uart_data.acc_y = accel.y;
+  logger_uart_data.acc_z = accel.z;
   logger_uart_data.vel_x = vel.x;
   logger_uart_data.vel_y = vel.y;
   logger_uart_data.vel_z = vel.z;
   logger_uart_data.pos_x = pos.x;
   logger_uart_data.pos_y = pos.y;
   logger_uart_data.pos_z = pos.z;
-  uint8_t crc = 0;
-  uint8_t *p = (uint8_t*) &logger_uart_data;  
-  for (int i=0; i<45; i++)
+  uint16_t crc = 0;
+  uint8_t *p = (uint8_t*) &logger_uart_data; 
+  byteFraming_init(esc, logger_uart_data.start, logger_uart_data.end);
+  uart_put_byte(&uart2, logger_uart_data.start); 
+  for (int i=1; i<44; i++)
   {
-    crc += p[i];
-    uart_put_byte(&uart2, p[i]);
+    retVar = byteFraming_checkByte(p[i]);
+    crc += retVar.data;
+    if(retVar.byteFraming_escapeByte == esc) {
+      crc += retVar.byteFraming_escapeByte;
+      uart_put_byte(&uart2, esc);
+    }
+    uart_put_byte(&uart2, retVar.data);
   }
   uart_put_byte(&uart2, crc);
+  uart_put_byte(&uart2, logger_uart_data.end); 
 
   // crc = crc + (start&0xFF);
   // crc = crc + ((start>>8)&0xFF);
@@ -83,4 +95,5 @@ void logger_uart_periodic(void)
   // uart_put_byte(&uart2, id&0xFF);
   // uart_put_byte(&uart2, (id>>8)&0xFF);
   // uart_put_byte(&uart2, crc);
+  // instead of p[i] use same memory space, xor, interrupts when start, end and esc byte arrive
 }
