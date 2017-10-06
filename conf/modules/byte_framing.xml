@@ -1,0 +1,13 @@
+<!DOCTYPE module SYSTEM "module.dtd">
+
+<module name="byte_framing" dir="loggers">
+  <doc>
+    <description>to frame byte.</description>
+  </doc>
+  <header>
+    <file name="byte_framing.h"/>
+  </header>
+  <makefile>
+    <file name="byte_framing.c"/>
+  </makefile>
+</module>
