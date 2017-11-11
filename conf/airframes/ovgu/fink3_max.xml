@@ -63,6 +63,7 @@
 			<configure name="SDLOGGER_DIRECT_SPI" value="SPI1"/>
 			<configure name="SDLOGGER_DIRECT_SPI_SLAVE" value="SPI_SLAVE1"/>
 		</load>
+		<load name="logger_uart.xml">
 	</modules>
 
 	<section name="FINKEN_WALL_AVOID" prefix="FINKEN_WALL_AVOID_"/>
