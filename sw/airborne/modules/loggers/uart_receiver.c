@@ -61,10 +61,10 @@ void uart_receiver_init(void){
 }
 void uart_receiver_periodic(void){
 //	while(!uart_getch(&uart2));
-	bool quitFlag = True;
+	uint16_t bufferSize = uart_char_available(&uart2)
 	DATACASE currentCase = START;
 	char dataInput = '';
-	while(quitFlag){
+	for(int i = 0; i < bufferSize; i++){
 		receivedByte = uart_getch(&uart2)
 		switch(currentCase) {
 			case STARTBYTE:
@@ -89,7 +89,8 @@ void uart_receiver_periodic(void){
 				}
 			break;
 			case ENDBYTE:
-				for (int i = 0; i < strlen(dataInput); i++)
+				for (int i = 0; i < 45
+					; i++)
 				{
 					uart_put_byte(&uart2, dataInput[i]);
 				}
