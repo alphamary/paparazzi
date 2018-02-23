@@ -22,7 +22,7 @@
 /*
 ________________________packet________________________________
 
-	uint8_t start byte, uint8_t event, float commandX, float commandY, float commandZ, uint8 or 16_t crc, uint8_t end byte
+uint8_t start byte, uint8_t event, float commandX, float commandY, float commandZ, uint8 or 16_t crc, uint8_t end byte
 ______________________________________________________________
 
 	commandX can be velocityX or positionX
@@ -32,7 +32,6 @@ ________________________event byte____________________________
 
 0x11 for set velocity
 0x22 for set position
-
 ______________________________________________________________
 
 TASK:
@@ -42,7 +41,7 @@ TASK:
 									 untill it detects 'end byte'.
 									 check received data sum with crc byte
 3) Expected final result : event, commandX, commandY, command Z in struct received_data
-#"@
+
 note: I am currently not sending crc byte. It will be probably one byte long
 ______________________________________________________________
 
@@ -50,22 +49,83 @@ ______________________________________________________________
 #include "uart_receiver.h"
 #include "state.h"
 #include "mcu_periph/uart.h"
+#include "string.h"
 
-enum DATACASE{STARTBYTE, DATABYTE, ENDBYTE};
+/*
+enum DATACASE{
+	STARTBYTE = char(0x99), 
+	DATABYTE = char(0x55), 
+	ENDBYTE = char(0xD3)
+};
+*/
+static const uint8_t START = 0x99;
+static const uint8_t END = 0x55;
+static const uint8_t ESC = 0xD3;
+static const char ACTION[2] = {char(0x11), char(0x22)};
 
 struct uart_receiver_data_struct received_data;
 void uart_receiver_init(void){
-	uint8_t START = (char)0x99;
-	uint8_t END = (char)0x55;
-	uint8_t ESC = (char)0xD3;
+	
 }
 void uart_receiver_periodic(void){
-//	while(!uart_getch(&uart2));
-	uint16_t bufferSize = uart_char_available(&uart2)
-	DATACASE currentCase = START;
-	char dataInput = '';
-	for(int i = 0; i < bufferSize; i++){
-		receivedByte = uart_getch(&uart2)
+	uint8_t receivedByte;
+	uint8_t temp = 0;
+	uint16_t bufferSize = uart_char_available(&uart2);
+	char dataInput[bufferSize];
+	uart_put_byte(&uart2, bufferSize);
+	if(bufferSize > 0){	
+		for(int i = 0; i < bufferSize; i++){
+			receivedByte = uart_getch(&uart2);			
+			if(receivedByte == START){
+				receivedByte = uart_getch(&uart2);
+				i++;
+			while(receivedByte != END){
+				if(receivedByte == ESC){
+					receivedByte = uart_getch(&uart2);
+					i++;
+					dataInput[temp] = receivedByte ^ ESC;
+					temp++;
+					receivedByte = uart_getch(&uart2);
+					i++;
+				}
+				else{
+					dataInput[temp] = receivedByte;
+					temp++;
+					receivedByte = uart_getch(&uart2);
+					i++;
+				}		
+			}
+		}
+		
+	}
+
+	}
+
+/*
+send commands to paparazzi functions 
+ EVENT | COMMAND_X | COMMAND_Y | COMMAND_Z  
+*/
+
+	for(int j = 0; j<temp ; j++){
+//		uart_put_byte(&uart2, dataInput[j]);
+		if (dataInput[j] == ACTION[0]){
+			
+		}
+		if (dataInput[j] == ACTION[1]){
+		}
+	}
+	
+
+}
+
+/*
+ struct PACKED uart_receiver_data_struct {
+    uint8_t event;
+    float cmd_x;      // 5
+    float cmd_y;
+    float cmd_z;
+
+
 		switch(currentCase) {
 			case STARTBYTE:
 				if(receivedByte == START) {
@@ -75,10 +135,10 @@ void uart_receiver_periodic(void){
 			case DATABYTE:
 				switch(receivedByte) {
 					case ESC:
-						dataInput += uart_getch(&uart2) ^ ESC //XOR
+						dataInput += uart_getch(&uart2) ^ ESC; //XOR
 					break;
 					case START:
-						dataInput = '';
+						dataInput = "";
 					break;
 					case END:
 						currentCase = ENDBYTE;
@@ -89,8 +149,7 @@ void uart_receiver_periodic(void){
 				}
 			break;
 			case ENDBYTE:
-				for (int i = 0; i < 45
-					; i++)
+				for (int i = 0; i < strlen(dataInput); i++)
 				{
 					uart_put_byte(&uart2, dataInput[i]);
 				}
@@ -105,7 +164,7 @@ void uart_receiver_periodic(void){
 
 
 
-		
+*/		
 // quitFlag = True
 		// rawData = ''	
 		// while quitFlag:
