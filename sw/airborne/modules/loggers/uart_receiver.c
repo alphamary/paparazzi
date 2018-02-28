@@ -22,7 +22,7 @@
 /*
 ________________________packet________________________________
 
-	uint8_t start byte, uint8_t event, float commandX, float commandY, float commandZ, uint8 or 16_t crc, uint8_t end byte
+uint8_t start byte, uint8_t event, float commandX, float commandY, float commandZ, uint8 or 16_t crc, uint8_t end byte
 ______________________________________________________________
 
 	commandX can be velocityX or positionX
@@ -32,98 +32,81 @@ ________________________event byte____________________________
 
 0x11 for set velocity
 0x22 for set position
-
-______________________________________________________________
-
-TASK:
-
-1) To receive data byte by byte
-2) If received byte is 'start byte', start unframing.
-									 untill it detects 'end byte'.
-									 check received data sum with crc byte
-3) Expected final result : event, commandX, commandY, command Z in struct received_data
-#"@
-note: I am currently not sending crc byte. It will be probably one byte long
 ______________________________________________________________
 
 */
 #include "uart_receiver.h"
 #include "state.h"
 #include "mcu_periph/uart.h"
+#include "string.h"
 
-enum DATACASE{STARTBYTE, DATABYTE, ENDBYTE};
+static const uint8_t START = 0x99;
+static const uint8_t END = 0x55;
+static const uint8_t ESC = 0xD3;
+static const char ACTION[2] = {char(0x11), char(0x22)};
 
 struct uart_receiver_data_struct received_data;
 void uart_receiver_init(void){
-	uint8_t START = (char)0x99;
-	uint8_t END = (char)0x55;
-	uint8_t ESC = (char)0xD3;
+	
 }
 void uart_receiver_periodic(void){
-//	while(!uart_getch(&uart2));
-	uint16_t bufferSize = uart_char_available(&uart2)
-	DATACASE currentCase = START;
-	char dataInput = '';
-	for(int i = 0; i < bufferSize; i++){
-		receivedByte = uart_getch(&uart2)
-		switch(currentCase) {
-			case STARTBYTE:
-				if(receivedByte == START) {
-					currentCase = DATABYTE;
+	struct NedCoor_f posGoal = *stateSetPositionNed_f();
+	struct NedCoor_f velGoal = *stateSetSpeedNed_f();
+
+	uint8_t temp;
+	uint8_t receivedByte;
+	uint16_t bufferSize = uart_char_available(&uart2);
+	uart_put_byte(&uart2, bufferSize);
+	if(bufferSize > 0){	
+		for(int i = 0; i < bufferSize; i++){
+			receivedByte = uart_getch(&uart2);			
+			if(receivedByte == START){
+				temp = 0;
+				receivedByte = uart_getch(&uart2);
+				i++;
+				uint8_t *p = (uint8_t*) &received_data; 
+				while(receivedByte != END){
+					if(receivedByte == ESC){
+						receivedByte = uart_getch(&uart2);
+						i++;
+						p[temp] = receivedByte ^ ESC;
+						temp++;
+						receivedByte = uart_getch(&uart2);
+						i++;
+					}
+					else{
+						p[temp] = receivedByte;
+						temp++;
+						receivedByte = uart_getch(&uart2);
+						i++;
+					}	
 				}
-			break;
-			case DATABYTE:
-				switch(receivedByte) {
-					case ESC:
-						dataInput += uart_getch(&uart2) ^ ESC //XOR
-					break;
-					case START:
-						dataInput = '';
-					break;
-					case END:
-						currentCase = ENDBYTE;
-					break;
-					default:
-						dataInput += receivedByte; 
-					break;
+
+				if (received_data.event == ACTION[0]){
+					velGoal.x = received_data.cmd_x;
+					velGoal.y = received_data.cmd_y;
+					velGoal.z = received_data.cmd_z;
+				} 
+				else if (received_data.event == ACTION[1]){
+					posGoal.x = received_data.cmd_x;
+					posGoal.y = received_data.cmd_y;
+					posGoal.z = received_data.cmd_z;
 				}
-			break;
-			case ENDBYTE:
-				for (int i = 0; i < 45
-					; i++)
-				{
-					uart_put_byte(&uart2, dataInput[i]);
-				}
-			break;
-			default:
-				continue;
-			break;
-	
-		}
+				
 	}
-}
-
-
-
 		
-// quitFlag = True
-		// rawData = ''	
-		// while quitFlag:
-		// 	newByte = (ser.read(1))		
-		// 	if newByte == END_BYTE:
-		// 		quitFlag = False
-		// 	elif newByte == ESC_BYTE:
-		// 		rawData += chr((ord(ser.read(1))^ord(ESC_BYTE)))
-		// 	elif newByte == START_BYTE:
-		// 		rawData = ''			
-		// 	else:				
-		// 		rawData += (newByte)
-		// return rawData
+	}
+
+	}
 
 /*
-static inline void stateSetAccelNed_f(struct NedCoor_f *ned_accel)
-/// Set ground speed in local NED coordinates (float).
-static inline void stateSetSpeedNed_f(struct NedCoor_f *ned_speed)
-/// Set position from local NED coordinates (float).
-static inline void stateSetPositionNed_f(struct NedCoor_f *ned_pos)
+send commands to paparazzi functions 
+ EVENT | COMMAND_X | COMMAND_Y | COMMAND_Z  
 */
+
+// static inline void stateSetAccelNed_f(struct NedCoor_f *ned_accel)
+// /// Set ground speed in local NED coordinates (float).
+// static inline void stateSetSpeedNed_f(struct NedCoor_f *ned_speed)
+// /// Set position from local NED coordinates (float).
+// static inline void stateSetPositionNed_f(struct NedCoor_f *ned_pos)
+// */
