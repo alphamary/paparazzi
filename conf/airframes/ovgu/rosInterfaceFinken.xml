@@ -59,8 +59,11 @@
     </module>
     <module name="virt_magnetometer.xml"/>
     <!--module name="copter_swarm.xml"/-->
-    <module name="uart_sender.xml"/>
-    <module name="uart_receiver.xml"/>  
+    <load name="uart_sender.xml">
+	<define name="LOGGER_PORT" value="uart2"/>
+	<define name="UART2_BAUD" value="B9600"/>
+    </load>
+    <load name="uart_receiver.xml"/>  
   </modules>
   
   <servos driver="Pwm">

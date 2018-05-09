@@ -8,7 +8,7 @@
   <header>
     <file name="uart_receiver.h"/>
   </header>
-  <periodic fun="uart_receiver_periodic()" autorun="TRUE" freq="1">
+  <periodic fun="uart_receiver_periodic()" autorun="TRUE" freq="10"/>
  <makefile>
     <file name="uart_receiver.c"/>
     <define name="USE_UART2" />

@@ -5,7 +5,7 @@
 #include "autopilot.h"
   </header>
   <waypoints>
-    <waypoint name="ROSINTERFACE" x="2.0" y="2.0" alt="0.0."/>
+    <waypoint name="ROSINTERFACE" x="2.0" y="1.5" alt="0.0"/>
     <waypoint name="SWARM" x="0.0" y="0.0" alt="0.4"/>
     <waypoint name="HOME" x="0.0" y="0.0" alt="0.6"/>
     <waypoint name="CLIMB" x="0.0" y="5.0"/>

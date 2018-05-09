@@ -28,8 +28,6 @@
 #include "mcu_periph/uart.h"
 #include "mcu_periph/sys_time.h"
 #include "modules/ins/imu_chimu.h"
-#include "modules/loggers/byte_framing.h"
-
 
 struct logger_uart_data_struct logger_uart_data;
 CHIMU_PARSER_DATA CHIMU_DATA;
