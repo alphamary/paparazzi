@@ -1,3 +1,7 @@
+/*!
+ * \author FINken ROSInterface Project
+ */
+
 /*
  * Copyright (C) 2005-2013 The Paparazzi Team
  *
@@ -29,12 +33,14 @@ extern void uart_receiver_init(void);
 extern void uart_receiver_periodic(void);
 
 #define PACKED __attribute__((__packed__))
-
+/**
+ * UART2 receiver structure 
+ */
   struct PACKED uart_receiver_data_struct {
-    uint8_t event;
-    float cmd_x;      // 5
-    float cmd_y;
-    float cmd_z;
+    uint8_t event; /*!< Event might be position command or velocity command, 0x22 and 0x11 respectively*/
+    float cmd_x; /*!< cmd_x stands for position or velocity in x-direction of the coordinate*/      
+    float cmd_y; /*!< cmd_y stands for position or velocity in y-direction of the coordinate*/
+    float cmd_z; /*!< cmd_z stands for position or velocity in z-direction of the coordinate*/
   };
 
 #endif /* UART_RECEIVER_H_ */

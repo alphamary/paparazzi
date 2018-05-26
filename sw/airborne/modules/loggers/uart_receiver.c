@@ -1,3 +1,9 @@
+/*!
+ * \author FINken ROSInterface Project
+ * \Warning:  Currently it supports only position commands
+ */
+
+
 /*
  * Copyright (C) 2005-2013 The Paparazzi Team
  *
@@ -52,8 +58,12 @@ struct uart_receiver_data_struct received_data;
 void uart_receiver_init(void){
 	
 }
+/*
+ * This function will receive data in buffer and do byte unframing.
+ * This will pass position command to method which can move waypoint.
+ * Currently velocity command is not supported by paparazzi, so velocity command will not work. 	
+*/
 void uart_receiver_periodic(void){
-//extern void waypoint_set_enu_i(uint8_t wp_id, struct EnuCoor_i *enu);
 
 	struct EnuCoor_i goalCmd;
 	uint8_t temp;
@@ -92,7 +102,7 @@ void uart_receiver_periodic(void){
 					goalCmd.x = received_data.cmd_x;
 					goalCmd.y = received_data.cmd_y;
 					goalCmd.z = received_data.cmd_z;
-					waypoint_move_enu_i(WP_ROSINTERFACE, &goalCmd);
+					waypoint_move_enu_i(WP_ROSINTERFACE, &goalCmd); /*!< Waypoint is changed to new position using this function (enu coordinate)*/
 				}
 				
 			}
