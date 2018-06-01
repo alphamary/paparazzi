@@ -41,7 +41,7 @@
       <stay vmode="climb" climb="nav_climb_vspeed" wp="HOME"/>
     </block>
     <block name="Standby" strip_button="Standby" strip_icon="home.png">
-	<call_once fun="enableCopterSwarm()"/>      	
+	<!--call_once fun="enableCopterSwarm()"/-->      	
 	<stay wp="SWARM" alt="0.4"/>
 	<while cond="stateGetPositionEnu_f()-> z > 0.1"/>
 	<!--stay alt="0.4"/-->	

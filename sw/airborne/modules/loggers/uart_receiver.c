@@ -59,7 +59,7 @@ void uart_receiver_periodic(void){
 	uint8_t temp;
 	uint8_t receivedByte;
 	uint16_t bufferSize = uart_char_available(&uart2);
-	uart_put_byte(&uart2, bufferSize);
+//	uart_put_byte(&uart2, bufferSize);
 	if(bufferSize > 0){	
 		for(int i = 0; i < bufferSize; i++){
 			receivedByte = uart_getch(&uart2);			
