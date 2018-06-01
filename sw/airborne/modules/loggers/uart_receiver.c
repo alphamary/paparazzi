@@ -64,6 +64,7 @@ void uart_receiver_periodic(void){
 		for(int i = 0; i < bufferSize; i++){
 			receivedByte = uart_getch(&uart2);			
 			if(receivedByte == START){
+				uart_put_byte(&uart2, 0, START);
 				temp = 0;
 				receivedByte = uart_getch(&uart2);
 				i++;
@@ -84,6 +85,12 @@ void uart_receiver_periodic(void){
 						i++;
 					}	
 				}
+					
+				uint8_t *test = (uint8_t*) &received_data;
+				for (int i=0; i<13; i++){
+    					uart_put_byte(&uart2, 0, test[i]);
+    				 }
+			//	uart_put_byte(&uart2, 0, received_data.cmd_x);
 
 				if (received_data.event ==velocityEvent){
 				
