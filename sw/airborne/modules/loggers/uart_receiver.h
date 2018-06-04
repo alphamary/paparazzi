@@ -35,6 +35,7 @@ extern void uart_receiver_periodic(void);
     float cmd_x;      // 5
     float cmd_y;
     float cmd_z;
+    uint16_t crc;
   };
 
 #endif /* UART_RECEIVER_H_ */
