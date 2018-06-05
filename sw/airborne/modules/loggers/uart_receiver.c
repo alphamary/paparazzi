@@ -59,18 +59,17 @@ void uart_receiver_periodic(void){
 	uint8_t temp;
 	uint8_t receivedByte;
 	uint16_t bufferSize = uart_char_available(&uart2);
+	uint8_t *p = (uint8_t*) &received_data; 
+
 //	uart_put_byte(&uart2, bufferSize);
 //	uart_put_byte(&uart2, 0, bufferSize);
 	if(bufferSize > 0){
 		for(int i = 0; i < bufferSize; i++){
 			receivedByte = uart_getch(&uart2);			
-			if(receivedByte == START || receivedByte != END){
-				//uart_put_byte(&uart2, 0, 1);
-				uint8_t *p = (uint8_t*) &received_data; 
-				temp = 0;
+			if(receivedByte != END){
 				if (receivedByte == START){
-					receivedByte = uart_getch(&uart2);
-					i++;
+					uart_put_byte(&uart2, 0, 1);
+					temp = 0;
 				}	
 				if (receivedByte == ESC){
 					receivedByte = uart_getch(&uart2);
@@ -78,16 +77,14 @@ void uart_receiver_periodic(void){
 					p[temp] = receivedByte ^ ESC;
 					temp++;
 				}
-				else if (receivedByte == END){
-					break;
-				}
 				else{
+					uart_put_byte(&uart2, 0, 2);								
 					p[temp] = receivedByte;
 					temp++;
-
 				}
 			}
 		}
+	}
 		
 		uint16_t crccheck = 0; 	
 		uint8_t *check = (uint8_t*) &received_data; 
@@ -108,12 +105,7 @@ void uart_receiver_periodic(void){
 				goalCmd.z = received_data.cmd_z;
 				waypoint_move_enu_i(WP_ROSINTERFACE, &goalCmd);
 			}
-			else{
-				//uart_put_byte(&uart2, 0, 0);
-	
-			}
 		}
-	} 
 }
 
 /*
