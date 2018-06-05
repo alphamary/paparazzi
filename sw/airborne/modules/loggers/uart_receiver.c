@@ -45,8 +45,8 @@ ______________________________________________________________
 static const uint8_t START = 0x99;
 static const uint8_t END = 0x55;
 static const uint8_t ESC = 0xD3;
-static const uint8_t velocityEvent = 0x11;
-static const uint8_t positionEvent = 0x22;
+static const uint8_t velocityEvent = 17;
+static const uint8_t positionEvent = 34;
 
 struct uart_receiver_data_struct received_data;
 void uart_receiver_init(void){
@@ -63,22 +63,21 @@ void uart_receiver_periodic(void){
 
 //	uart_put_byte(&uart2, bufferSize);
 //	uart_put_byte(&uart2, 0, bufferSize);
-	if(bufferSize > 0){
-		for(int i = 0; i < bufferSize; i++){
+	temp = 0;
+	if(bufferSize > 12){
+		for(int i = 0; i < 13; i++){
 			receivedByte = uart_getch(&uart2);			
 			if(receivedByte != END){
 				if (receivedByte == START){
-					uart_put_byte(&uart2, 0, 1);
 					temp = 0;
 				}	
-				if (receivedByte == ESC){
+				else if (receivedByte == ESC){
 					receivedByte = uart_getch(&uart2);
 					i++;
 					p[temp] = receivedByte ^ ESC;
 					temp++;
 				}
-				else{
-					uart_put_byte(&uart2, 0, 2);								
+				else{							
 					p[temp] = receivedByte;
 					temp++;
 				}
@@ -87,12 +86,13 @@ void uart_receiver_periodic(void){
 	}
 		
 		uint16_t crccheck = 0; 	
-		uint8_t *check = (uint8_t*) &received_data; 
+	//	uint8_t *check = (uint8_t*) &received_data; 
 		for (int i=0; i<13; i++){
-    			crccheck += check[i] ;
+			//uart_put_byte(&uart2, 0, p[i]);
+    			crccheck += p[i] ;
     		}
-		if (received_data.crc == crccheck){
-			uart_put_byte(&uart2, 0, (received_data.event));
+		//if (received_data.crc == crccheck){
+			//uart_put_byte(&uart2, 0, (received_data.event));
 			//uart_put_byte(&uart2, 0, (crccheck - received_data.crc));
 			//uart_put_byte(&uart2, 0, positionEvent - received_data.event);
 			if (received_data.event == velocityEvent){
@@ -105,7 +105,7 @@ void uart_receiver_periodic(void){
 				goalCmd.z = received_data.cmd_z;
 				waypoint_move_enu_i(WP_ROSINTERFACE, &goalCmd);
 			}
-		}
+		//}
 }
 
 /*
