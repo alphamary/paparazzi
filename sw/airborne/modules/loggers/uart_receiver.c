@@ -22,7 +22,7 @@
 /*
 ________________________packet________________________________
 
-uint8_t start byte, uint8_t event, float commandX, float commandY, float commandZ, uint8 or 16_t crc, uint8_t end byte
+uint8_t start byte, uint8_t event, float commandX, float commandY, float commandZ, uint16_t crc, uint8_t end byte
 ______________________________________________________________
 
 	commandX can be velocityX or positionX
@@ -61,35 +61,35 @@ void uart_receiver_periodic(void){
 	uint16_t bufferSize = uart_char_available(&uart2);
 //	uart_put_byte(&uart2, bufferSize);
 	if(bufferSize > 0){
-		
 		for(int i = 0; i < bufferSize; i++){
 			receivedByte = uart_getch(&uart2);			
 			if(receivedByte == START){
-				// uart_put_byte(&uart2, 0, 1);
+				uart_put_byte(&uart2, 0, 1);
 				temp = 0;
 				receivedByte = uart_getch(&uart2);
 				i++;
 				uint8_t *p = (uint8_t*) &received_data; 
 				while(receivedByte != END){
-					//uart_put_byte(&uart2, 0, 3);
+					uart_put_byte(&uart2, 0, 2);
 					if(receivedByte == ESC){
+						uart_put_byte(&uart2, 0, 3);
 						receivedByte = uart_getch(&uart2);
 						i++;
 						p[temp] = receivedByte ^ ESC;
 						temp++;
 						receivedByte = uart_getch(&uart2);
 						i++;
-											}
+					}
 					else{
-					//	uart_put_byte(&uart2, 0, 2);
+						uart_put_byte(&uart2, 0, 4);
 						p[temp] = receivedByte;
 						temp++;
 						receivedByte = uart_getch(&uart2);
 						i++;
-
-											}		
+					}		
 				}
-							uint16_t crccheck = 0; 	
+				uart_put_byte(&uart2, 0, 5);			
+				uint16_t crccheck = 0; 	
 				for (int i=0; i<13; i++){
     					crccheck += p[i] ;
     				 }
@@ -104,23 +104,20 @@ void uart_receiver_periodic(void){
 						goalCmd.y = received_data.cmd_y;
 						goalCmd.z = received_data.cmd_z;
 						waypoint_move_enu_i(WP_ROSINTERFACE, &goalCmd);
-				}
+					}
 				else{
 					//uart_put_byte(&uart2, 0, 0);
 		
 				}
-				}
-				
+				}	
 			}
-		
 		}
-
 	}
 }
 
 /*
 send commands to paparazzi functions 
- EVENT | COMMAND_X | COMMAND_Y | COMMAND_Z  
+ EVENT | COMMAND_X | COMMAND_Y | COMMAND_Z | crc 
 */
 
 //extern void waypoint_set_enu_i(uint8_t wp_id, struct EnuCoor_i *enu);
