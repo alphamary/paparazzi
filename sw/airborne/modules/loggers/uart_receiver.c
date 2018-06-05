@@ -16,13 +16,13 @@
  * You should have received a copy of the GNU General Public License
  * along with paparazzi; see the file COPYING.  If not, write to
  * the Free Software Foundation, 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * Boston, MA 0211-307, USA.
  *
  */
 /*
 ________________________packet________________________________
 
-uint8_t start byte, uint8_t event, float commandX, float commandY, float commandZ, uint16_t crc, uint8_t end byte
+uint8_t start byte, uint8_t event, float commandX, float commandY, float commandZ, uint6_t crc, uint8_t end byte
 ______________________________________________________________
 
 	commandX can be velocityX or positionX
@@ -30,7 +30,7 @@ ______________________________________________________________
 	commandZ can be velocityZ or positionZ
 ________________________event byte____________________________
 
-0x11 for set velocity
+0x1 for set velocity
 0x22 for set position
 ______________________________________________________________
 
@@ -60,59 +60,60 @@ void uart_receiver_periodic(void){
 	uint8_t receivedByte;
 	uint16_t bufferSize = uart_char_available(&uart2);
 //	uart_put_byte(&uart2, bufferSize);
+//	uart_put_byte(&uart2, 0, bufferSize);
 	if(bufferSize > 0){
 		for(int i = 0; i < bufferSize; i++){
 			receivedByte = uart_getch(&uart2);			
-			if(receivedByte == START){
-				uart_put_byte(&uart2, 0, 1);
-				temp = 0;
-				receivedByte = uart_getch(&uart2);
-				i++;
+			if(receivedByte == START || receivedByte != END){
+				//uart_put_byte(&uart2, 0, 1);
 				uint8_t *p = (uint8_t*) &received_data; 
-				while(receivedByte != END){
-					uart_put_byte(&uart2, 0, 2);
-					if(receivedByte == ESC){
-						uart_put_byte(&uart2, 0, 3);
-						receivedByte = uart_getch(&uart2);
-						i++;
-						p[temp] = receivedByte ^ ESC;
-						temp++;
-						receivedByte = uart_getch(&uart2);
-						i++;
-					}
-					else{
-						uart_put_byte(&uart2, 0, 4);
-						p[temp] = receivedByte;
-						temp++;
-						receivedByte = uart_getch(&uart2);
-						i++;
-					}		
-				}
-				uart_put_byte(&uart2, 0, 5);			
-				uint16_t crccheck = 0; 	
-				for (int i=0; i<13; i++){
-    					crccheck += p[i] ;
-    				 }
-			//	uart_put_byte(&uart2, 0, received_data.cmd_x);
-				if (received_data.crc == crccheck){
-					//uart_put_byte(&uart2, 0, 1);
-					if (received_data.event ==velocityEvent){
-					
-					} 
-					else if (received_data.event == positionEvent){
-						goalCmd.x = received_data.cmd_x;
-						goalCmd.y = received_data.cmd_y;
-						goalCmd.z = received_data.cmd_z;
-						waypoint_move_enu_i(WP_ROSINTERFACE, &goalCmd);
-					}
-				else{
-					//uart_put_byte(&uart2, 0, 0);
-		
-				}
+				temp = 0;
+				if (receivedByte == START){
+					receivedByte = uart_getch(&uart2);
+					i++;
 				}	
+				if (receivedByte == ESC){
+					receivedByte = uart_getch(&uart2);
+					i++;
+					p[temp] = receivedByte ^ ESC;
+					temp++;
+				}
+				else if (receivedByte == END){
+					break;
+				}
+				else{
+					p[temp] = receivedByte;
+					temp++;
+
+				}
 			}
 		}
-	}
+		
+		uint16_t crccheck = 0; 	
+		uint8_t *check = (uint8_t*) &received_data; 
+		for (int i=0; i<13; i++){
+    			crccheck += check[i] ;
+    		}
+		if (received_data.crc == crccheck){
+			uart_put_byte(&uart2, 0, (received_data.event));
+			//uart_put_byte(&uart2, 0, (crccheck - received_data.crc));
+			//uart_put_byte(&uart2, 0, positionEvent - received_data.event);
+			if (received_data.event == velocityEvent){
+		
+			} 
+			else if (received_data.event == positionEvent){
+				uart_put_byte(&uart2, 0, positionEvent);
+				goalCmd.x = received_data.cmd_x;
+				goalCmd.y = received_data.cmd_y;
+				goalCmd.z = received_data.cmd_z;
+				waypoint_move_enu_i(WP_ROSINTERFACE, &goalCmd);
+			}
+			else{
+				//uart_put_byte(&uart2, 0, 0);
+	
+			}
+		}
+	} 
 }
 
 /*
