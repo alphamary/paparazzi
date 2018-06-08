@@ -1,3 +1,7 @@
+/*!
+ * \author FINken ROSInterface Project
+ */
+
 /*
  * Copyright (C) 2005-2013 The Paparazzi Team
  *
@@ -40,7 +44,7 @@ void logger_uart_periodic(void)
 {
   logger_uart_data.start = 0x99;
   logger_uart_data.end = 0x55;
-  uint8_t esc = 0xD3;
+  uint8_t esc = 0xD3; /*!< Escape byte is used in byte framing to identify data similar to start and end byte  */
   logger_uart_data.id++;
   struct NedCoor_f accel = *stateGetAccelNed_f();
   struct NedCoor_f vel = *stateGetSpeedNed_f();

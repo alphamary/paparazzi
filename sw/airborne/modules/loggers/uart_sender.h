@@ -1,3 +1,7 @@
+/*!
+ * \author FINken ROSInterface Project
+ */
+
 /*
  * Copyright (C) 2015 The Paparazzi Team
  *
@@ -29,26 +33,23 @@ extern void logger_uart_init(void);
 extern void logger_uart_periodic(void);
 
 #define PACKED __attribute__((__packed__))
-
-//union {
+/** UART2 sender structure */
   struct PACKED logger_uart_data_struct {
-    uint8_t start;
-    uint16_t id;         // 1
-    float timeStamp;
-    unsigned char deviceID;
-    float acc_x;      // 5
-    float acc_y;
-    float acc_z;
-    float vel_x;      // 5
-    float vel_y;
-    float vel_z;
-    float pos_x;      // 5
-    float pos_y;
-    float pos_z;
-    uint16_t crc;
-    uint8_t end;
+    uint8_t start; /*!< Used in byte framing, it is defined as 0x99 in FINken ROSInterface project*/
+    uint16_t id;  /*! UART2 package ID*/
+    float timeStamp; /*! Current time in seconds*/
+    unsigned char deviceID; /*!< ID of copter */
+    float acc_x;    /*! Acceleration in x-coordinate*/
+    float acc_y;    /*! Acceleration in y-coordinate*/
+    float acc_z;    /*! Acceleration in y-coordinate*/
+    float vel_x;    /*! Velocity in x-coordinate*/
+    float vel_y;    /*! Velocity in y-coordinate*/
+    float vel_z;    /*! Velocity in z-coordinate*/
+    float pos_x;    /*! Position in x-coordinate*/
+    float pos_y;    /*! Position in y-coordinate*/
+    float pos_z;    /*! Position in z-coordinate*/
+    uint16_t crc;   /*! Checksum (used in byte framing)*/
+    uint8_t end; /*!< Used in byte framing, it is defined as 0x55 in FINken ROSInterface project*/
   };
-//  uint8_t bytes[23];
-//} logger_uart_data_union;
 
-#endif /* LOGGER_UART_H_ */
+#endif /* UART_SENDER_H_ */
