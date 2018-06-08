@@ -99,12 +99,13 @@ void uart_receiver_periodic(void){
 		
 			} 
 			else if (received_data.event == positionEvent){
-				uart_put_byte(&uart2, 0, positionEvent);
+				//uart_put_byte(&uart2, 0, positionEvent);
 				goalCmd.x = received_data.cmd_x;
 				goalCmd.y = received_data.cmd_y;
 				goalCmd.z = received_data.cmd_z;
 				waypoint_move_enu_i(WP_ROSINTERFACE, &goalCmd);
 			}
+			memset(&received_data, 0, sizeof(received_data));
 		//}
 }
 
