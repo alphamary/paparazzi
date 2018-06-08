@@ -41,6 +41,7 @@ extern void uart_receiver_periodic(void);
     float cmd_x; /*!< cmd_x stands for position or velocity in x-direction of the coordinate*/      
     float cmd_y; /*!< cmd_y stands for position or velocity in y-direction of the coordinate*/
     float cmd_z; /*!< cmd_z stands for position or velocity in z-direction of the coordinate*/
+    uint16_t crc;
   };
 
 #endif /* UART_RECEIVER_H_ */

@@ -1,9 +1,3 @@
-/*!
- * \author FINken ROSInterface Project
- * \Warning:  Currently it supports only position commands
- */
-
-
 /*
  * Copyright (C) 2005-2013 The Paparazzi Team
  *
@@ -51,79 +45,75 @@ ______________________________________________________________
 static const uint8_t START = 0x99;
 static const uint8_t END = 0x55;
 static const uint8_t ESC = 0xD3;
-static const uint8_t velocityEvent = 17;
-static const uint8_t positionEvent = 34;
+static const uint8_t velocityEvent = 0x1;
+static const uint8_t positionEvent = 0x22;
 
 struct uart_receiver_data_struct received_data;
 void uart_receiver_init(void){
 	
 }
-/*
- * This function will receive data in buffer and do byte unframing.
- * This will pass position command to method which can move waypoint.
- * Currently velocity command is not supported by paparazzi, so velocity command will not work. 	
-*/
 void uart_receiver_periodic(void){
+//extern void waypoint_set_enu_i(uint8_t wp_id, struct EnuCoor_i *enu);
 
 	struct EnuCoor_i goalCmd;
 	uint8_t temp;
 	uint8_t receivedByte;
 	uint16_t bufferSize = uart_char_available(&uart2);
-	uint8_t *p = (uint8_t*) &received_data; 
-
 //	uart_put_byte(&uart2, bufferSize);
-//	uart_put_byte(&uart2, 0, bufferSize);
-	temp = 0;
-	if(bufferSize > 12){
-		for(int i = 0; i < 13; i++){
+
+	if(bufferSize > 0){
+		for(int i = 0; i < bufferSize; i++){
 			receivedByte = uart_getch(&uart2);			
-			if(receivedByte != END){
-				if (receivedByte == START){
-					temp = 0;
+			if(receivedByte == START){
+				uart_put_byte(&uart2, 0, 1);
+				temp = 0;
+				receivedByte = uart_getch(&uart2);
+				i++;
+				uint8_t *p = (uint8_t*) &received_data; 
+				while(receivedByte != END){
+					uart_put_byte(&uart2, 0, 2);
+					if(receivedByte == ESC){
+						uart_put_byte(&uart2, 0, 3);
+						receivedByte = uart_getch(&uart2);
+						i++;
+						p[temp] = receivedByte ^ ESC;
+						temp++;
+						receivedByte = uart_getch(&uart2);
+						i++;
+					}
+					else{
+						uart_put_byte(&uart2, 0, 4);
+						p[temp] = receivedByte;
+						temp++;
+						receivedByte = uart_getch(&uart2);
+						i++;
+					}		
+				}
+				uart_put_byte(&uart2, 0, 5);			
+				uint16_t crccheck = 0; 	
+				for (int i=0; i<13; i++){
+    					crccheck += p[i] ;
+    				 }
+			//	uart_put_byte(&uart2, 0, received_data.cmd_x);
+				if (received_data.crc == crccheck){
+					//uart_put_byte(&uart2, 0, 1);
+					if (received_data.event ==velocityEvent){
+					
+					} 
+					else if (received_data.event == positionEvent){
+						goalCmd.x = received_data.cmd_x;
+						goalCmd.y = received_data.cmd_y;
+						goalCmd.z = received_data.cmd_z;
+						waypoint_move_enu_i(WP_ROSINTERFACE, &goalCmd);
+					}
+				else{
+					//uart_put_byte(&uart2, 0, 0);
+		
+				}
 				}	
-				else if (receivedByte == ESC){
-					receivedByte = uart_getch(&uart2);
-					i++;
-					p[temp] = receivedByte ^ ESC;
-					temp++;
-				}
-				else{							
-					p[temp] = receivedByte;
-					temp++;
-				}
 			}
 		}
-	}
-		
-		uint16_t crccheck = 0; 	
-	//	uint8_t *check = (uint8_t*) &received_data; 
-		for (int i=0; i<13; i++){
-			//uart_put_byte(&uart2, 0, p[i]);
-    			crccheck += p[i] ;
-    		}
-		//if (received_data.crc == crccheck){
-			//uart_put_byte(&uart2, 0, (received_data.event));
-			//uart_put_byte(&uart2, 0, (crccheck - received_data.crc));
-			//uart_put_byte(&uart2, 0, positionEvent - received_data.event);
-			if (received_data.event == velocityEvent){
-		
-			} 
-			else if (received_data.event == positionEvent){
-				//uart_put_byte(&uart2, 0, positionEvent);
-				goalCmd.x = received_data.cmd_x;
-				goalCmd.y = received_data.cmd_y;
-				goalCmd.z = received_data.cmd_z;
-				waypoint_move_enu_i(WP_ROSINTERFACE, &goalCmd);  /*!< Waypoint is changed to new position using this function (enu coordinate)*/
-
-			}
-			memset(&received_data, 0, sizeof(received_data));
-		//}
+	} 
+	
 }
 
-/*
-send commands to paparazzi functions 
- EVENT | COMMAND_X | COMMAND_Y | COMMAND_Z | crc 
-*/
-
-//extern void waypoint_set_enu_i(uint8_t wp_id, struct EnuCoor_i *enu);
-//wp_id = ROSINTERFACE

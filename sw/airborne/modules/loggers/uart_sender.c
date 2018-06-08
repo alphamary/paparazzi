@@ -32,8 +32,6 @@
 #include "mcu_periph/uart.h"
 #include "mcu_periph/sys_time.h"
 #include "modules/ins/imu_chimu.h"
-#include "modules/loggers/byte_framing.h"
-
 
 struct logger_uart_data_struct logger_uart_data;
 CHIMU_PARSER_DATA CHIMU_DATA;
@@ -74,25 +72,25 @@ void logger_uart_periodic(void)
   logger_uart_data.pos_z = pos.z;
   uint16_t crc = 0;
   uint8_t *p = (uint8_t*) &logger_uart_data; 
-  uart_put_byte(&uart2, logger_uart_data.start); 
-  for (int i=1; i<43; i++){
+  uart_put_byte(&uart2, 0, logger_uart_data.start); 
+  for (int i=1; i<44; i++){
   if(p[i]==logger_uart_data.start || p[i]==logger_uart_data.end || p[i]==esc){
-    uart_put_byte(&uart2, esc);
-    crc += esc;
+    uart_put_byte(&uart2, 0, esc);
+    // crc += esc;
     uint8_t escData = (p[i])^esc;
-    crc += escData;
-    uart_put_byte(&uart2,escData);
+    crc += p[i];
+    uart_put_byte(&uart2, 0, escData);
   }
   else{
-    uart_put_byte(&uart2,p[i]);
+    uart_put_byte(&uart2, 0, p[i]);
     crc += p[i];
 
   }
  }
   
-  uart_put_byte(&uart2, crc&0xFF);
-  uart_put_byte(&uart2, (crc>>8)&0xFF);
+  uart_put_byte(&uart2, 0, crc&0xFF);
+  uart_put_byte(&uart2, 0, (crc>>8)&0xFF);
 
-  uart_put_byte(&uart2, logger_uart_data.end); 
+  uart_put_byte(&uart2, 0, logger_uart_data.end); 
 
 }
