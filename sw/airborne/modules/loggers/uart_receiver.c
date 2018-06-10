@@ -53,10 +53,10 @@ static const uint8_t END = 0x55;
 static const uint8_t ESC = 0xD3;
 static const uint8_t velocityEvent = 17;
 static const uint8_t positionEvent = 34;
-
+bool running = false;
 struct uart_receiver_data_struct received_data;
 void uart_receiver_init(void){
-	
+	running = false;
 }
 /*
  * This function will receive data in buffer and do byte unframing.
@@ -64,7 +64,7 @@ void uart_receiver_init(void){
  * Currently velocity command is not supported by paparazzi, so velocity command will not work. 	
 */
 void uart_receiver_periodic(void){
-
+	if(running){
 	struct EnuCoor_i goalCmd;
 	uint8_t temp;
 	uint8_t receivedByte;
@@ -113,13 +113,16 @@ void uart_receiver_periodic(void){
 				goalCmd.x = received_data.cmd_x;
 				goalCmd.y = received_data.cmd_y;
 				goalCmd.z = received_data.cmd_z;
-				waypoint_move_enu_i(WP_ROSINTERFACE, &goalCmd);  /*!< Waypoint is changed to new position using this function (enu coordinate)*/
+				waypoint_set_enu(WP_ROSINTERFACE, &goalCmd);  /*!< Waypoint is changed to new position using this function (enu coordinate)*/
 
 			}
 			memset(&received_data, 0, sizeof(received_data));
 		//}
 }
-
+}
+void enableTarget(){
+	running = true;
+}
 /*
 send commands to paparazzi functions 
  EVENT | COMMAND_X | COMMAND_Y | COMMAND_Z | crc 
