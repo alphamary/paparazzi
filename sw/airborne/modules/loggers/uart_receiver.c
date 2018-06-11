@@ -64,8 +64,8 @@ void uart_receiver_init(void){
  * Currently velocity command is not supported by paparazzi, so velocity command will not work. 	
 */
 void uart_receiver_periodic(void){
-	if(running){
-	struct EnuCoor_i goalCmd;
+//	if(running){
+	struct EnuCoor_f goalCmd;
 	uint8_t temp;
 	uint8_t receivedByte;
 	uint16_t bufferSize = uart_char_available(&uart2);
@@ -108,18 +108,21 @@ void uart_receiver_periodic(void){
 			if (received_data.event == velocityEvent){
 		
 			} 
-			else if (received_data.event == positionEvent){
-				//uart_put_byte(&uart2, 0, positionEvent);
+			if (received_data.event == positionEvent){
+				for (int i=0; i<13; i++){
+					uart_put_byte(&uart2, 0, p[i]);
+    					crccheck += p[i] ;
+    				}
 				goalCmd.x = received_data.cmd_x;
 				goalCmd.y = received_data.cmd_y;
 				goalCmd.z = received_data.cmd_z;
-				waypoint_set_enu(WP_ROSINTERFACE, &goalCmd);  /*!< Waypoint is changed to new position using this function (enu coordinate)*/
+				waypoint_set_enu(1, &goalCmd);  /*!< Waypoint is changed to new position using this function (enu coordinate)*/
 
 			}
-			memset(&received_data, 0, sizeof(received_data));
+			//memset(&received_data, 0, sizeof(received_data));
 		//}
 }
-}
+//}
 void enableTarget(){
 	running = true;
 }

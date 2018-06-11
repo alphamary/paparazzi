@@ -31,6 +31,7 @@
       <message name="VERT_LOOP"             period="0.5"/>
       <message name="VIRT_MAG"             period="1.0"/>
       <message name="TUNE_VERT"             period="0.5"/>
+      <message name="WP_MOVED"		period="1.0"/>
       <!--message name="AHRS_EULER_INT"	     period="1.0"/>
       <message name="AHRS_QUAT_INT"	     period="1.0"/-->
     </mode>
@@ -80,7 +81,7 @@
       <message name="GEO_MAG"            period="5."/>
       <message name="AHRS_GYRO_BIAS_INT" period="0.08"/>
       <message name="AHRS_QUAT_INT"      period=".25"/>
-      <message name="AHRS_EULER_INT"     period=".1"/>
+      <message name="AHRS_EULER_INT"     period=".1"/>	
 <!--      <message name="AHRS_RMAT_INT"   period=".5"/> -->
     </mode>
 
