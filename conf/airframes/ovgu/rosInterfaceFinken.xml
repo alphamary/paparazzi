@@ -64,13 +64,13 @@
     </module>
     <module name="virt_magnetometer.xml"/>
     <!--module name="copter_swarm.xml"/-->
-    <!--load name="uart_sender.xml">
+    <load name="uart_sender.xml">
 	<define name="LOGGER_PORT" value="uart2"/>
 	<define name="UART2_BAUD" value="B9600"/>
-    </load-->
+    </load>
     <load name="uart_receiver.xml"> 
-	<define name="LOGGER_PORT" value="uart2"/>
-	<define name="UART2_BAUD" value="B9600"/>
+	<!--define name="LOGGER_PORT" value="uart2"/>
+	<define name="UART2_BAUD" value="B9600"/-->
 	</load>
  
   </modules>
